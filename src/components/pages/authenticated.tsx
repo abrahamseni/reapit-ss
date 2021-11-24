@@ -89,11 +89,19 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
   };
 
   const renderCell = (property, index: number) => {
-    const address = property.address.line1.concat(
+    const address = [
+      property.address.line1,
       property.address.line2,
       property.address.line3,
-      property.address.line4
-    );
+      property.address.line4,
+    ].reduce((acc, el, i) => {
+      if (i === 0) return el;
+      if (el !== "") {
+        return `${acc}, ${el}`;
+      }
+      return acc;
+    }, "");
+
     return (
       <>
         <TableCell>{index + 1}</TableCell>
@@ -116,12 +124,7 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
         <BodyText>{errorMessage}</BodyText>
       ) : (
         <Table>
-          <TableHeadersRow>
-            {renderHeader(headers)}
-            <TableHeader>
-              <Icon icon="editSystem" fontSize="1.2rem" />
-            </TableHeader>
-          </TableHeadersRow>
+          <TableHeadersRow>{renderHeader(headers)}</TableHeadersRow>
           {properties &&
             properties["_embedded"].map((property, index: number) => {
               return (
