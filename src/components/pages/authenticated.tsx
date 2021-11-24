@@ -7,6 +7,7 @@ import {
   TableHeadersRow,
   TableHeader,
   TableCell,
+  Icon,
 } from "@reapit/elements";
 import { useReapitConnect } from "@reapit/connect-session";
 import { reapitConnectBrowserSession } from "../../core/connect-session";
@@ -88,14 +89,14 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
   };
 
   const renderCell = (property, index: number) => {
-    let address =
-      `${property.address.line1}, ${property.address.line2}, ${property.address.line3}, ${property.address.line4}`.replace(
-        /,(\s,)*$/,
-        ""
-      );
+    const address = property.address.line1.concat(
+      property.address.line2,
+      property.address.line3,
+      property.address.line4
+    );
     return (
       <>
-        <TableCell>{index}</TableCell>
+        <TableCell>{index + 1}</TableCell>
         <TableCell>{property.type[0]}</TableCell>
         <TableCell>{address}</TableCell>
         <TableCell>{property.bathrooms}</TableCell>
@@ -109,23 +110,28 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
   return (
     <>
       <Title>Properties for sale</Title>
-      <Table>
-        <TableHeadersRow>{renderHeader(headers)}</TableHeadersRow>
-        {loading ? (
-          <BodyText>Loading</BodyText>
-        ) : errorMessage !== "" ? (
-          <BodyText>{errorMessage}</BodyText>
-        ) : (
-          properties &&
-          properties["_embedded"].map((property, index: number) => {
-            return (
-              <TableRow key={property.id}>
-                {renderCell(property, index)}
-              </TableRow>
-            );
-          })
-        )}
-      </Table>
+      {loading ? (
+        <BodyText>Loading</BodyText>
+      ) : errorMessage !== "" ? (
+        <BodyText>{errorMessage}</BodyText>
+      ) : (
+        <Table>
+          <TableHeadersRow>
+            {renderHeader(headers)}
+            <TableHeader>
+              <Icon icon="editSystem" fontSize="1.2rem" />
+            </TableHeader>
+          </TableHeadersRow>
+          {properties &&
+            properties["_embedded"].map((property, index: number) => {
+              return (
+                <TableRow key={property.id}>
+                  {renderCell(property, index)}
+                </TableRow>
+              );
+            })}
+        </Table>
+      )}
     </>
   );
 };
