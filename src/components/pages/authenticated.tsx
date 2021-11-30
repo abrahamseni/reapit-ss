@@ -9,13 +9,31 @@ import {
   TableCell,
   Icon,
 } from "@reapit/elements";
-import { useReapitConnect } from "@reapit/connect-session";
+import {
+  useReapitConnect,
+  ReapitConnectSession,
+} from "@reapit/connect-session";
 import { reapitConnectBrowserSession } from "../../core/connect-session";
 import { configurationAppointmentsApiService } from "../../platform-api/configuration-api";
-import { ListItemModel } from "@reapit/foundations-ts-definitions";
+import { ListItemModel, Properties } from "@reapit/foundations-ts-definitions";
 import { BASE_HEADERS } from "../../constants/api";
+import { useQuery } from "react-query";
+import axios from "../../axios";
 
 export type AuthenticatedProps = {};
+
+async function getAllProperties({
+  queryKey,
+}: {
+  queryKey: [String, ReapitConnectSession | null];
+}): Promise<Properties> {
+  const res = await axios.get("properties/?marketingMode=selling", {
+    headers: {
+      Authorization: `Bearer ${queryKey[1]?.accessToken}`,
+    },
+  });
+  return res.data;
+}
 
 export const Authenticated: FC<AuthenticatedProps> = () => {
   const { connectSession } = useReapitConnect(reapitConnectBrowserSession);
@@ -23,9 +41,13 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
     ListItemModel[]
   >([]);
 
-  const [properties, setProperties] = useState<null | any>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const properties = useQuery<
+    Properties,
+    Error,
+    Properties,
+    [String, ReapitConnectSession | null]
+  >(["getAllProperties", connectSession], getAllProperties);
+  const { status, data, error } = properties;
 
   useEffect(() => {
     const fetchAppoinmentConfigs = async () => {
@@ -42,35 +64,7 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
     }
   }, [connectSession]);
 
-  console.log("Appointment Config Types are: ", appointmentConfigTypes);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      if (!connectSession) return;
-      try {
-        setLoading(true);
-        const res = await fetch(
-          "https://platform.reapit.cloud/properties/?marketingMode=selling",
-          {
-            method: "GET",
-            headers: {
-              ...BASE_HEADERS,
-              Authorization: `Bearer ${connectSession.accessToken}`,
-            },
-          }
-        );
-        const data = await res.json();
-        setProperties(data);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        setErrorMessage("Error fetching Properties");
-        console.error("Error fetching Properties", error);
-      }
-    };
-
-    fetchProperties();
-  }, [connectSession]);
+  // console.log("Appointment Config Types are: ", appointmentConfigTypes);
 
   const headers = [
     "No",
@@ -118,15 +112,15 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
   return (
     <>
       <Title>Properties for sale</Title>
-      {loading ? (
+      {status === "loading" ? (
         <BodyText>Loading</BodyText>
-      ) : errorMessage !== "" ? (
-        <BodyText>{errorMessage}</BodyText>
+      ) : status === "error" ? (
+        <BodyText>{error?.message}</BodyText>
       ) : (
         <Table>
           <TableHeadersRow>{renderHeader(headers)}</TableHeadersRow>
-          {properties &&
-            properties["_embedded"].map((property, index: number) => {
+          {data &&
+            data["_embedded"].map((property, index: number) => {
               return (
                 <TableRow key={property.id}>
                   {renderCell(property, index)}
