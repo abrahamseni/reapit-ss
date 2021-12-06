@@ -1,35 +1,50 @@
-import * as React from 'react'
-import { Route, Router as BrowserRouter, Switch, Redirect } from 'react-router-dom'
-import { createBrowserHistory } from 'history'
-import Routes from '../constants/routes'
-import PrivateRouteWrapper from './private-route-wrapper'
+import * as React from "react";
+import {
+  Route,
+  Router as BrowserRouter,
+  Switch,
+  Redirect,
+} from "react-router-dom";
+import { createBrowserHistory } from "history";
+import Routes from "../constants/routes";
+import PrivateRouteWrapper from "./private-route-wrapper";
 
-export const history = createBrowserHistory()
+export const history = createBrowserHistory();
 
 export const catchChunkError = (
   fn: Function,
   retriesLeft = 3,
-  interval = 500,
+  interval = 500
 ): Promise<{ default: React.ComponentType<any> }> => {
   return new Promise((resolve, reject) => {
     fn()
       .then(resolve)
       .catch((error: Error) => {
         // Ignore chunk cache error and retry to fetch, if cannot reload browser
-        console.info(error)
+        console.info(error);
         setTimeout(() => {
           if (retriesLeft === 1) {
-            window.location.reload()
-            return
+            window.location.reload();
+            return;
           }
-          catchChunkError(fn, retriesLeft - 1, interval).then(resolve, reject)
-        }, interval)
-      })
-  })
-}
+          catchChunkError(fn, retriesLeft - 1, interval).then(resolve, reject);
+        }, interval);
+      });
+  });
+};
 
-const LoginPage = React.lazy(() => catchChunkError(() => import('../components/pages/login')))
-const AuthenticatedPage = React.lazy(() => catchChunkError(() => import('../components/pages/authenticated')))
+const LoginPage = React.lazy(() =>
+  catchChunkError(() => import("../components/pages/login"))
+);
+const AuthenticatedPage = React.lazy(() =>
+  catchChunkError(() => import("../components/pages/authenticated"))
+);
+const Appointment = React.lazy(() =>
+  catchChunkError(() => import("../components/pages/appointment"))
+);
+const Calendar = React.lazy(() =>
+  catchChunkError(() => import("../components/pages/calendar"))
+);
 
 const Router = () => (
   <BrowserRouter history={history}>
@@ -38,13 +53,15 @@ const Router = () => (
         <Route path={Routes.LOGIN} component={LoginPage} />
         <PrivateRouteWrapper>
           <Switch>
-            <Route path={Routes.HOME} component={AuthenticatedPage} />
+            <Route exact path={Routes.HOME} component={AuthenticatedPage} />
+            <Route path={Routes.APPOINTMENT} component={Appointment} />
+            <Route path={Routes.CALENDAR} component={Calendar} />
           </Switch>
         </PrivateRouteWrapper>
         <Redirect to={Routes.LOGIN} />
       </Switch>
     </React.Suspense>
   </BrowserRouter>
-)
+);
 
-export default Router
+export default Router;

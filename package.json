@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fullcalendar/core": "^5.10.1",
+    "@fullcalendar/daygrid": "^5.10.1",
+    "@fullcalendar/interaction": "^5.10.1",
+    "@fullcalendar/list": "^5.10.1",
+    "@fullcalendar/react": "^5.10.1",
+    "@fullcalendar/timegrid": "^5.10.1",
     "@linaria/babel-preset": "^3.0.0-beta.4",
     "@linaria/core": "^3.0.0-beta.4",
     "@linaria/react": "^3.0.0-beta.7",
@@ -36,6 +42,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.3",
     "serve": "^12.0.0",
+    "twind": "^0.16.16",
     "typescript": "^4.3.5"
   },
   "scripts": {

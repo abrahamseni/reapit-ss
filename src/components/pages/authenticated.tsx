@@ -1,5 +1,12 @@
 import React, { useEffect, FC, useState } from "react";
-import { Title, BodyText, Table, Pagination, RowProps } from "@reapit/elements";
+import {
+  Loader,
+  Title,
+  BodyText,
+  Table,
+  Pagination,
+  RowProps,
+} from "@reapit/elements";
 import {
   useReapitConnect,
   ReapitConnectSession,
@@ -13,6 +20,7 @@ import {
 } from "@reapit/foundations-ts-definitions";
 import { useQuery } from "react-query";
 import axios from "../../axios";
+import Property from "../Card/Property";
 
 export type AuthenticatedProps = {};
 
@@ -38,6 +46,7 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
     ListItemModel[]
   >([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [tableData, setTableData] = useState<RowProps[] | undefined>(undefined);
 
   const properties = useQuery<
     PropertyModelPagedResult,
@@ -65,14 +74,11 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
 
   // console.log("Appointment Config Types are: ", appointmentConfigTypes);
 
-  const [tableData, setTableData] = useState<RowProps[] | undefined>(undefined);
   useEffect(() => {
-    const expandableContent = {
-      content: (
-        <p>
-          I am more content that is only visible when the 2nd row is expanded
-        </p>
-      ),
+    const expandableContent = (embed: PropertyModel) => {
+      return {
+        content: <Property embed={embed} connectSession={connectSession!} />,
+      };
     };
 
     let newTableData: RowProps[];
@@ -101,29 +107,34 @@ export const Authenticated: FC<AuthenticatedProps> = () => {
         ];
         return {
           cells,
-          expandableContent,
+          expandableContent: expandableContent(embed),
         };
       });
       setTableData(newTableData);
     }
-  }, [data]);
+  }, [data, connectSession]);
 
   return (
     <>
       <Title>Properties for sale</Title>
       {status === "loading" ? (
-        <BodyText>Loading</BodyText>
+        <Loader label="='Loading" />
       ) : status === "error" ? (
         <BodyText>{error?.message}</BodyText>
       ) : (
-        <Table rows={tableData} />
-      )}
-      {status === "success" && data && (
-        <Pagination
-          callback={setCurrentPage}
-          currentPage={currentPage!}
-          numberPages={data?.pageSize!}
-        />
+        <>
+          <Pagination
+            callback={setCurrentPage}
+            currentPage={currentPage!}
+            numberPages={data?.pageSize!}
+          />
+          <Table rows={tableData} />
+          <Pagination
+            callback={setCurrentPage}
+            currentPage={currentPage!}
+            numberPages={data?.pageSize!}
+          />
+        </>
       )}
     </>
   );
