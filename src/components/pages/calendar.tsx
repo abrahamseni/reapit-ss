@@ -24,6 +24,7 @@ const Calendar = (props: Props) => {
         .filter((d: AppointmentModel) => {
           if (d.attendee?.contacts && d.attendee.contacts.length > 0)
             return true;
+          return false;
         })
         .map((d) => {
           return {
